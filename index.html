@@ -14,7 +14,8 @@
     :root {
       --bg: #f7f8fa;
       --card: #ffffff;
-      --text: #1a1a1a;
+      --text: #1a1a1a;        /* カード内の文字色（カードは白なので濃色固定） */
+      --page-text: #1a1a1a;   /* 名前・一言・フッターの文字色（背景に応じて変更） */
       --muted: #6b7280;
       --border: #e5e7eb;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
@@ -26,6 +27,10 @@
       font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
         "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
       background: var(--bg);
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      background-repeat: no-repeat;
       color: var(--text);
       line-height: 1.6;
       min-height: 100vh;
@@ -33,7 +38,17 @@
       justify-content: center;
       padding: 48px 20px;
     }
+    /* 画像背景のときに文字を読みやすくする半透明レイヤー（任意） */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      display: none;
+    }
     .container {
+      position: relative;
+      z-index: 1;
       width: 100%;
       max-width: 480px;
       display: flex;
@@ -55,10 +70,12 @@
       font-weight: 700;
       letter-spacing: 0.01em;
       text-align: center;
+      color: var(--page-text);
     }
     .bio {
       margin-top: 8px;
-      color: var(--muted);
+      color: var(--page-text);
+      opacity: 0.72;
       font-size: 0.95rem;
       text-align: center;
       max-width: 360px;
@@ -95,10 +112,11 @@
     .link svg { width: 22px; height: 22px; flex-shrink: 0; }
     .link span { flex: 1; }
     .link .chev { color: var(--muted); width: 16px; height: 16px; }
-    footer { margin-top: 40px; color: var(--muted); font-size: 0.8rem; }
+    footer { margin-top: 40px; color: var(--page-text); opacity: 0.6; font-size: 0.8rem; }
   </style>
 </head>
 <body>
+  <div id="overlay"></div>
   <main class="container">
     <img class="avatar" id="avatar" alt="プロフィール画像" />
     <h1 class="name" id="name"></h1>
@@ -116,6 +134,19 @@
       name: "Your Name",
       bio: "ここに一言紹介が入ります。あなたの活動やテーマを短く書きましょう。",
       avatar: "assets/avatar.svg", // 自分の画像URL or ファイルに差し替え（正方形推奨）
+
+      // 背景：次のいずれかを指定
+      //   色:        "#f7f8fa" や "white" など
+      //   グラデ:    "linear-gradient(135deg, #a18cd1, #fbc2eb)"
+      //   画像:      "assets/bg.jpg"（.jpg/.png/.webp/.gif/.svg は自動で画像背景に）
+      background: "#f7f8fa",
+
+      // 背景に合わせた文字色（名前・一言・フッター）。暗い背景なら "#ffffff" 推奨
+      textColor: "#1a1a1a",
+
+      // 画像背景のとき文字を読みやすくする重ね色（任意）。不要なら "" にする
+      //   例（暗くする）: "rgba(0,0,0,0.35)"  /  例（明るくする）: "rgba(255,255,255,0.45)"
+      overlay: "",
 
       // リンク一覧：不要な行は丸ごと削除、必要な行は複製して増やせます。
       //   icon … 下のアイコン一覧から選択（未対応の名前なら自動で汎用アイコン）
@@ -164,7 +195,32 @@
 
     const chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
 
+    // 背景を適用（色 / グラデーション / 画像 を自動判定）
+    function applyBackground(bg) {
+      if (!bg) return;
+      const isImage = /\.(png|jpe?g|webp|gif|avif|svg)(\?.*)?$/i.test(bg) || /^url\(/i.test(bg);
+      if (isImage) {
+        const url = /^url\(/i.test(bg) ? bg : "url('" + bg + "')";
+        document.body.style.backgroundImage = url;
+      } else {
+        // 色・グラデーションはそのまま指定
+        document.body.style.background = bg;
+        document.body.style.backgroundSize = "cover";
+        document.body.style.backgroundPosition = "center";
+        document.body.style.backgroundAttachment = "fixed";
+      }
+    }
+
     // 描画
+    applyBackground(CONFIG.background);
+    if (CONFIG.textColor) {
+      document.documentElement.style.setProperty("--page-text", CONFIG.textColor);
+    }
+    if (CONFIG.overlay) {
+      const ov = document.getElementById("overlay");
+      ov.style.background = CONFIG.overlay;
+      ov.style.display = "block";
+    }
     document.title = CONFIG.name + " | Link in bio";
     document.getElementById("avatar").src = CONFIG.avatar;
     document.getElementById("avatar").alt = CONFIG.name;
