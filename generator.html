@@ -145,8 +145,9 @@
         <h2>プロフィール</h2>
         <label>名前</label>
         <input type="text" id="f-name" placeholder="Your Name" />
-        <label>一言紹介</label>
-        <textarea id="f-bio" placeholder="ここに一言紹介が入ります。"></textarea>
+        <label>一言紹介（Enterで改行できます）</label>
+        <textarea id="f-bio" maxlength="140" placeholder="ここに一言紹介が入ります。&#10;改行もできます。"></textarea>
+        <div class="hint"><span id="bio-count">0</span> / 140 文字</div>
         <label>アイコン画像</label>
         <div class="row">
           <input type="text" id="f-avatar" placeholder="画像URL（https://...）" />
@@ -408,7 +409,9 @@
     }
 
     bindText("f-name", "name");
-    bindText("f-bio", "bio");
+    bindText("f-bio", "bio", function () {
+      document.getElementById("bio-count").textContent = state.bio.length;
+    });
     bindText("f-footer", "footer");
     bindText("f-avatar", "avatar");
     bindText("f-bg-image", "bgImage");
@@ -514,6 +517,7 @@
     // 初期値をフォームに反映
     document.getElementById("f-name").value = state.name;
     document.getElementById("f-bio").value = state.bio;
+    document.getElementById("bio-count").textContent = state.bio.length;
     document.getElementById("f-footer").value = state.footer;
     document.getElementById("f-avatar").value = "";
 
