@@ -355,12 +355,21 @@
     document.getElementById("avatar").alt = CONFIG.name;
     document.getElementById("name").textContent = CONFIG.name;
     document.getElementById("bio").textContent = CONFIG.bio;
+    // URLを補正：メールアドレスは mailto:、スキームの無いURLは https:// を自動付与
+    function normalizeUrl(raw) {
+      var u = String(raw || "").trim();
+      if (!u) return u;
+      if (/^(https?:|mailto:|tel:|#|\/|\.\/)/i.test(u)) return u; // すでに正しい形
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return "mailto:" + u; // メールアドレス
+      return "https://" + u; // ドメインだけ等
+    }
     document.getElementById("links").innerHTML = (CONFIG.links || [])
       .map(function (l) {
-        const isMail = String(l.url).startsWith("mailto:");
+        const url = normalizeUrl(l.url);
+        const isMail = url.startsWith("mailto:");
         const attrs = isMail ? "" : ' target="_blank" rel="noopener"';
         return (
-          '<a class="link" href="' + l.url + '"' + attrs + ">" +
+          '<a class="link" href="' + url + '"' + attrs + ">" +
           iconSvg(l.icon) +
           "<span>" + l.label + "</span>" +
           chev +
