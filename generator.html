@@ -338,6 +338,15 @@
       return state.bgColor;
     }
 
+    // URLを補正：メールアドレスは mailto:、スキームの無いURLは https:// を自動付与
+    function normalizeLink(raw) {
+      var u = String(raw || "").trim();
+      if (!u) return u;
+      if (/^(https?:|mailto:|tel:|#|\/|\.\/)/i.test(u)) return u;
+      if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(u)) return "mailto:" + u;
+      return "https://" + u;
+    }
+
     function buildConfig() {
       return {
         name: state.name,
@@ -353,7 +362,9 @@
           buttonRadius: Number(state.buttonRadius),
           avatarShape: state.avatarShape,
         },
-        links: state.links,
+        links: state.links.map(function (l) {
+          return { icon: l.icon, label: l.label, url: normalizeLink(l.url) };
+        }),
         music: state.music,
         gallery: state.gallery,
         footer: state.footer,
@@ -588,7 +599,7 @@
     // テンプレート読み込み → プレビュー
     renderLinks();
     renderThumbs();
-    fetch("index.html")
+    fetch("index.html?_=" + (window.performance ? performance.now() : ""), { cache: "no-store" })
       .then(function (r) { return r.text(); })
       .then(function (txt) { TEMPLATE = txt; refreshPreview(); })
       .catch(function () { refreshPreview(); });
