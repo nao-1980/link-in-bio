@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link in bio ジェネレーター</title>
+  <meta name="description" content="ログイン不要で自分のリンクページを作成・ダウンロード" />
+  <style>
+    :root {
+      --accent: #6d5efc;
+      --bg: #f4f5f7;
+      --panel: #fff;
+      --border: #e2e5ea;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
+        "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+    header {
+      padding: 18px 24px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 { font-size: 1.1rem; }
+    header p { color: var(--muted); font-size: 0.8rem; }
+    .btn {
+      appearance: none;
+      border: 1px solid var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 10px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: filter 0.15s ease;
+    }
+    .btn:hover { filter: brightness(1.05); }
+    .btn.secondary { background: #fff; color: var(--accent); }
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .preview-wrap { position: static !important; order: -1; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .card h2 { font-size: 0.95rem; margin-bottom: 14px; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin: 10px 0 4px; }
+    input[type="text"], input[type="url"], input[type="email"], select, textarea {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      font-size: 0.9rem;
+      font-family: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+    textarea { resize: vertical; min-height: 56px; }
+    .row { display: flex; gap: 10px; align-items: center; }
+    .row > * { flex: 1; }
+    .row .grow0 { flex: 0 0 auto; }
+    input[type="color"] {
+      width: 44px; height: 38px; padding: 2px; border: 1px solid var(--border);
+      border-radius: 9px; background: #fff; cursor: pointer; flex: 0 0 auto;
+    }
+    input[type="range"] { accent-color: var(--accent); }
+    .hint { font-size: 0.75rem; color: var(--muted); margin-top: 4px; }
+    .seg { display: flex; flex-wrap: wrap; gap: 6px; }
+    .seg button {
+      flex: 1; min-width: 70px; padding: 8px; border: 1px solid var(--border);
+      background: #fff; border-radius: 8px; cursor: pointer; font-size: 0.82rem; color: var(--text);
+    }
+    .seg button.active { border-color: var(--accent); background: #f0eeff; color: var(--accent); font-weight: 700; }
+
+    .link-item {
+      border: 1px solid var(--border); border-radius: 10px; padding: 12px; margin-bottom: 10px; background: #fafbfc;
+    }
+    .link-item .top { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+    .link-item select { flex: 0 0 130px; }
+    .link-item .label-in { flex: 1; }
+    .icon-btn {
+      flex: 0 0 auto; width: 32px; height: 32px; border: 1px solid var(--border); background: #fff;
+      border-radius: 8px; cursor: pointer; color: var(--muted); font-size: 1rem; line-height: 1;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
+    .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+    .icon-btn.del:hover { color: #e5484d; border-color: #e5484d; }
+
+    .preview-wrap { position: sticky; top: 84px; }
+    .preview-frame {
+      width: 100%; height: 640px; border: 1px solid var(--border); border-radius: 16px;
+      background: #fff; overflow: hidden;
+    }
+    .preview-frame iframe { width: 100%; height: 100%; border: 0; }
+    .dl-note { font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+      background: #1a1a1a; color: #fff; padding: 10px 18px; border-radius: 10px;
+      font-size: 0.85rem; opacity: 0; pointer-events: none; transition: opacity 0.2s ease; z-index: 50;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>🔗 Link in bio ジェネレーター</h1>
+      <p>ログイン不要・無料。入力して「ダウンロード」すれば、あなた専用のページHTMLが手に入ります。</p>
+    </div>
+    <button class="btn" id="download">📥 ページをダウンロード</button>
+  </header>
+
+  <div class="layout">
+    <!-- 入力フォーム -->
+    <div>
+      <div class="card">
+        <h2>プロフィール</h2>
+        <label>名前</label>
+        <input type="text" id="f-name" placeholder="Your Name" />
+        <label>一言紹介</label>
+        <textarea id="f-bio" placeholder="ここに一言紹介が入ります。"></textarea>
+        <label>アイコン画像</label>
+        <div class="row">
+          <input type="text" id="f-avatar" placeholder="画像URL（https://...）" />
+          <button class="btn secondary grow0" id="f-avatar-upload-btn" type="button">アップロード</button>
+        </div>
+        <input type="file" id="f-avatar-file" accept="image/*" hidden />
+        <div class="hint">正方形の画像がおすすめ。アップロードした画像はHTMLに埋め込まれます。</div>
+      </div>
+
+      <div class="card">
+        <h2>背景</h2>
+        <label>種類</label>
+        <div class="seg" id="bg-type">
+          <button data-v="color" class="active">単色</button>
+          <button data-v="gradient">グラデーション</button>
+          <button data-v="image">画像</button>
+        </div>
+
+        <div id="bg-color-box">
+          <label>背景色</label>
+          <div class="row">
+            <input type="color" id="f-bg-color" value="#f7f8fa" />
+            <input type="text" id="f-bg-color-text" value="#f7f8fa" />
+          </div>
+        </div>
+
+        <div id="bg-gradient-box" hidden>
+          <label>グラデーション（2色）</label>
+          <div class="row">
+            <input type="color" id="f-grad-1" value="#a18cd1" />
+            <input type="color" id="f-grad-2" value="#fbc2eb" />
+            <select id="f-grad-dir" class="grow0" style="flex:0 0 120px">
+              <option value="135deg">斜め</option>
+              <option value="to right">横</option>
+              <option value="to bottom">縦</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="bg-image-box" hidden>
+          <label>背景画像</label>
+          <div class="row">
+            <input type="text" id="f-bg-image" placeholder="画像URL（https://...）" />
+            <button class="btn secondary grow0" id="f-bg-upload-btn" type="button">アップロード</button>
+          </div>
+          <input type="file" id="f-bg-file" accept="image/*" hidden />
+        </div>
+
+        <label>文字色（名前・一言・フッター）</label>
+        <div class="row">
+          <input type="color" id="f-textcolor" value="#1a1a1a" />
+          <input type="text" id="f-textcolor-text" value="#1a1a1a" />
+        </div>
+        <div class="hint">暗い背景・写真背景なら白（#ffffff）がおすすめ。</div>
+
+        <label>重ね色（画像背景を見やすく・任意）</label>
+        <div class="seg" id="overlay-type">
+          <button data-v="" class="active">なし</button>
+          <button data-v="rgba(0,0,0,0.35)">暗く</button>
+          <button data-v="rgba(255,255,255,0.45)">明るく</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>デザイン</h2>
+        <label>アクセントカラー</label>
+        <div class="row">
+          <input type="color" id="f-accent" value="#6d5efc" />
+          <input type="text" id="f-accent-text" value="#6d5efc" />
+        </div>
+
+        <label>フォント</label>
+        <div class="seg" id="font-type">
+          <button data-v="sans" class="active">標準</button>
+          <button data-v="rounded">丸ゴシック</button>
+          <button data-v="serif">明朝</button>
+          <button data-v="mono">等幅</button>
+        </div>
+
+        <label>ボタンの種類</label>
+        <div class="seg" id="btn-type">
+          <button data-v="card" class="active">白カード</button>
+          <button data-v="outline">枠線</button>
+          <button data-v="solid">塗り</button>
+          <button data-v="glass">すりガラス</button>
+        </div>
+
+        <label>ボタンの角丸：<span id="radius-val">14</span>px</label>
+        <input type="range" id="f-radius" min="0" max="999" value="14" style="width:100%" />
+
+        <label>アイコンの形</label>
+        <div class="seg" id="avatar-type">
+          <button data-v="circle" class="active">丸</button>
+          <button data-v="rounded">角丸</button>
+          <button data-v="square">四角</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>リンク <button class="btn secondary grow0" id="add-link" type="button" style="float:right">＋ 追加</button></h2>
+        <div id="links-list"></div>
+      </div>
+
+      <div class="card">
+        <h2>フッター</h2>
+        <label>フッターに表示する名前</label>
+        <input type="text" id="f-footer" placeholder="Your Name" />
+        <div class="hint">「© 2026 ◯◯」の◯◯部分。年は自動です。</div>
+      </div>
+    </div>
+
+    <!-- プレビュー -->
+    <div class="preview-wrap">
+      <div class="card" style="margin-bottom:12px">
+        <h2 style="margin-bottom:10px">プレビュー</h2>
+        <div class="preview-frame"><iframe id="preview" title="preview"></iframe></div>
+        <button class="btn" id="download2" style="width:100%; margin-top:12px">📥 ページをダウンロード</button>
+        <div class="dl-note">
+          ダウンロードした <code>index.html</code> を GitHub Pages・Netlify などにアップすれば公開できます。
+          このツールはデータを保存しません。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // 使えるアイコン（index.html の ICONS と対応）
+    const ICON_NAMES = ["x","instagram","youtube","tiktok","email","website","line","facebook","github","note","threads"];
+
+    // 既定アイコン（テンプレートと同じSVGをデータURLで自己完結化）
+    const DEFAULT_AVATAR = "data:image/svg+xml;utf8," + encodeURIComponent(
+      '<svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e0e7ff"/><stop offset="1" stop-color="#f5d0fe"/></linearGradient></defs><rect width="240" height="240" fill="url(#g)"/><circle cx="120" cy="96" r="44" fill="#ffffff" opacity="0.9"/><path d="M40 220c0-44 36-72 80-72s80 28 80 72z" fill="#ffffff" opacity="0.9"/></svg>'
+    );
+
+    // 状態
+    const state = {
+      name: "Your Name",
+      bio: "ここに一言紹介が入ります。あなたの活動やテーマを短く書きましょう。",
+      avatar: DEFAULT_AVATAR,
+      bgType: "color",
+      bgColor: "#f7f8fa",
+      grad1: "#a18cd1", grad2: "#fbc2eb", gradDir: "135deg",
+      bgImage: "",
+      textColor: "#1a1a1a",
+      overlay: "",
+      accent: "#6d5efc",
+      font: "sans",
+      buttonStyle: "card",
+      buttonRadius: 14,
+      avatarShape: "circle",
+      footer: "Your Name",
+      links: [
+        { icon: "x", label: "X (Twitter)", url: "https://x.com/yourname" },
+        { icon: "instagram", label: "Instagram", url: "https://instagram.com/yourname" },
+        { icon: "email", label: "メール", url: "mailto:your@email.com" },
+      ],
+    };
+
+    function backgroundValue() {
+      if (state.bgType === "gradient") {
+        return "linear-gradient(" + state.gradDir + ", " + state.grad1 + ", " + state.grad2 + ")";
+      }
+      if (state.bgType === "image") return state.bgImage || state.bgColor;
+      return state.bgColor;
+    }
+
+    function buildConfig() {
+      return {
+        name: state.name,
+        bio: state.bio,
+        avatar: state.avatar,
+        background: backgroundValue(),
+        textColor: state.textColor,
+        overlay: state.overlay,
+        theme: {
+          accent: state.accent,
+          font: state.font,
+          buttonStyle: state.buttonStyle,
+          buttonRadius: Number(state.buttonRadius),
+          avatarShape: state.avatarShape,
+        },
+        links: state.links,
+        footer: state.footer,
+      };
+    }
+
+    // テンプレート（index.html）を取得して CONFIG を差し替える
+    let TEMPLATE = "";
+    const CONFIG_REGEX = /<script>\s*const CONFIG\s*=[\s\S]*?<\/script>/;
+
+    function generateHtml() {
+      const json = JSON.stringify(buildConfig(), null, 2);
+      const block = "<script>\n    const CONFIG = " + json + ";\n  <\/script>";
+      if (TEMPLATE && CONFIG_REGEX.test(TEMPLATE)) {
+        return TEMPLATE.replace(CONFIG_REGEX, block);
+      }
+      return "<!doctype html><meta charset=utf-8><p>テンプレートを読み込めませんでした。index.html と同じ場所に置いて、サーバー経由で開いてください。</p>";
+    }
+
+    function refreshPreview() {
+      document.getElementById("preview").srcdoc = generateHtml();
+    }
+
+    function download() {
+      const html = generateHtml();
+      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "index.html";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(a.href);
+      showToast("index.html をダウンロードしました");
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(function () { t.classList.remove("show"); }, 2200);
+    }
+
+    // ---- フォーム配線 ----
+    function bindText(id, key, after) {
+      const el = document.getElementById(id);
+      el.value = state[key];
+      el.addEventListener("input", function () {
+        state[key] = el.value;
+        if (after) after();
+        refreshPreview();
+      });
+    }
+    function bindColorPair(colorId, textId, key) {
+      const c = document.getElementById(colorId);
+      const t = document.getElementById(textId);
+      c.value = state[key]; t.value = state[key];
+      c.addEventListener("input", function () { state[key] = c.value; t.value = c.value; refreshPreview(); });
+      t.addEventListener("input", function () { state[key] = t.value; if (/^#?[0-9a-fA-F]{3,8}$/.test(t.value)) c.value = t.value.startsWith("#") ? t.value : "#" + t.value; refreshPreview(); });
+    }
+    function bindSeg(containerId, key, after) {
+      const c = document.getElementById(containerId);
+      c.querySelectorAll("button").forEach(function (b) {
+        b.addEventListener("click", function () {
+          c.querySelectorAll("button").forEach(function (x) { x.classList.remove("active"); });
+          b.classList.add("active");
+          state[key] = b.dataset.v;
+          if (after) after();
+          refreshPreview();
+        });
+      });
+    }
+    function fileToDataUrl(file, cb) {
+      const r = new FileReader();
+      r.onload = function () { cb(r.result); };
+      r.readAsDataURL(file);
+    }
+
+    bindText("f-name", "name");
+    bindText("f-bio", "bio");
+    bindText("f-footer", "footer");
+    bindText("f-avatar", "avatar");
+    bindText("f-bg-image", "bgImage");
+
+    bindColorPair("f-bg-color", "f-bg-color-text", "bgColor");
+    bindColorPair("f-textcolor", "f-textcolor-text", "textColor");
+    bindColorPair("f-accent", "f-accent-text", "accent");
+
+    document.getElementById("f-grad-1").addEventListener("input", function (e) { state.grad1 = e.target.value; refreshPreview(); });
+    document.getElementById("f-grad-2").addEventListener("input", function (e) { state.grad2 = e.target.value; refreshPreview(); });
+    document.getElementById("f-grad-dir").addEventListener("change", function (e) { state.gradDir = e.target.value; refreshPreview(); });
+
+    bindSeg("bg-type", "bgType", function () {
+      document.getElementById("bg-color-box").hidden = state.bgType !== "color";
+      document.getElementById("bg-gradient-box").hidden = state.bgType !== "gradient";
+      document.getElementById("bg-image-box").hidden = state.bgType !== "image";
+    });
+    bindSeg("overlay-type", "overlay");
+    bindSeg("font-type", "font");
+    bindSeg("btn-type", "buttonStyle");
+    bindSeg("avatar-type", "avatarShape");
+
+    const radius = document.getElementById("f-radius");
+    radius.value = state.buttonRadius;
+    document.getElementById("radius-val").textContent = state.buttonRadius;
+    radius.addEventListener("input", function () {
+      state.buttonRadius = radius.value;
+      document.getElementById("radius-val").textContent = radius.value;
+      refreshPreview();
+    });
+
+    // アップロード（アイコン・背景）→ データURL化して自己完結
+    document.getElementById("f-avatar-upload-btn").addEventListener("click", function () { document.getElementById("f-avatar-file").click(); });
+    document.getElementById("f-avatar-file").addEventListener("change", function (e) {
+      if (e.target.files[0]) fileToDataUrl(e.target.files[0], function (url) {
+        state.avatar = url; document.getElementById("f-avatar").value = "（アップロード済み画像）"; refreshPreview();
+      });
+    });
+    document.getElementById("f-bg-upload-btn").addEventListener("click", function () { document.getElementById("f-bg-file").click(); });
+    document.getElementById("f-bg-file").addEventListener("change", function (e) {
+      if (e.target.files[0]) fileToDataUrl(e.target.files[0], function (url) {
+        state.bgImage = url; document.getElementById("f-bg-image").value = "（アップロード済み画像）"; refreshPreview();
+      });
+    });
+
+    // ---- リンク編集 ----
+    function renderLinks() {
+      const wrap = document.getElementById("links-list");
+      wrap.innerHTML = "";
+      state.links.forEach(function (link, i) {
+        const item = document.createElement("div");
+        item.className = "link-item";
+
+        const top = document.createElement("div");
+        top.className = "top";
+
+        const sel = document.createElement("select");
+        ICON_NAMES.forEach(function (n) {
+          const o = document.createElement("option");
+          o.value = n; o.textContent = n;
+          if (n === link.icon) o.selected = true;
+          sel.appendChild(o);
+        });
+        sel.addEventListener("change", function () { state.links[i].icon = sel.value; refreshPreview(); });
+
+        const labelIn = document.createElement("input");
+        labelIn.type = "text"; labelIn.className = "label-in"; labelIn.placeholder = "表示名"; labelIn.value = link.label;
+        labelIn.addEventListener("input", function () { state.links[i].label = labelIn.value; refreshPreview(); });
+
+        const up = mkIconBtn("↑", "上へ", function () { if (i > 0) { swap(i, i - 1); } });
+        const down = mkIconBtn("↓", "下へ", function () { if (i < state.links.length - 1) { swap(i, i + 1); } });
+        const del = mkIconBtn("✕", "削除", function () { state.links.splice(i, 1); renderLinks(); refreshPreview(); });
+        del.classList.add("del");
+
+        top.appendChild(sel); top.appendChild(labelIn); top.appendChild(up); top.appendChild(down); top.appendChild(del);
+
+        const urlIn = document.createElement("input");
+        urlIn.type = "text"; urlIn.placeholder = "リンク先URL（メールは mailto:address）"; urlIn.value = link.url;
+        urlIn.addEventListener("input", function () { state.links[i].url = urlIn.value; refreshPreview(); });
+
+        item.appendChild(top); item.appendChild(urlIn);
+        wrap.appendChild(item);
+      });
+    }
+    function mkIconBtn(txt, title, fn) {
+      const b = document.createElement("button");
+      b.className = "icon-btn"; b.type = "button"; b.textContent = txt; b.title = title;
+      b.addEventListener("click", fn);
+      return b;
+    }
+    function swap(a, b) {
+      const t = state.links[a]; state.links[a] = state.links[b]; state.links[b] = t;
+      renderLinks(); refreshPreview();
+    }
+    document.getElementById("add-link").addEventListener("click", function () {
+      state.links.push({ icon: "website", label: "新しいリンク", url: "https://" });
+      renderLinks(); refreshPreview();
+    });
+
+    document.getElementById("download").addEventListener("click", download);
+    document.getElementById("download2").addEventListener("click", download);
+
+    // 初期値をフォームに反映
+    document.getElementById("f-name").value = state.name;
+    document.getElementById("f-bio").value = state.bio;
+    document.getElementById("f-footer").value = state.footer;
+    document.getElementById("f-avatar").value = "";
+
+    // テンプレート読み込み → プレビュー
+    renderLinks();
+    fetch("index.html")
+      .then(function (r) { return r.text(); })
+      .then(function (txt) { TEMPLATE = txt; refreshPreview(); })
+      .catch(function () { refreshPreview(); });
+  </script>
+</body>
+</html>
