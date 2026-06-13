@@ -1,29 +1,51 @@
 # Link in bio
 
 シンプルな Link in bio（プロフィール＋リンク集）ページです。ビルド不要の素の HTML/CSS/JS で、GitHub Pages で公開できます。
+**`index.html` 内の設定ブロック（`CONFIG`）を書き換えるだけ**で、誰でも自分用にカスタマイズできます。
 
 ## 公開URL
-
-デプロイ後、以下でアクセスできます（`<ユーザー名>` は自分の GitHub アカウント名）：
 
 ```
 https://<ユーザー名>.github.io/link-in-bio/
 ```
 
-## 編集方法
+（例：このリポジトリでは https://nao-1980.github.io/link-in-bio/ ）
 
-すべて [`index.html`](index.html) 内で完結します。
+## カスタマイズ方法
 
-| 変更したいもの | 編集箇所 |
-| --- | --- |
-| 名前 | `<h1 class="name">Your Name</h1>` |
-| 一言紹介 | `<p class="bio">…</p>` |
-| アイコン画像 | `assets/avatar.svg` を自分の画像（正方形推奨）に差し替え。別名にした場合は `<img class="avatar" src="...">` の src も変更 |
-| 各SNSのリンク | 各 `<a class="link" href="#" …>` の `href="#"` を実際のURLに変更 |
-| メールアドレス | `href="mailto:your@email.com"` を自分のアドレスに変更 |
-| タイトル/OGP | `<head>` 内の `<title>` と `og:*` メタタグ |
+[`index.html`](index.html) の中ほどにある「▼ここだけ編集すればOK」の `CONFIG` を編集します。
 
-リンクの追加・削除は `<nav class="links">` 内の `<a class="link">…</a>` ブロックを複製・削除するだけです。
+```js
+const CONFIG = {
+  name: "Your Name",                 // 名前
+  bio: "ここに一言紹介が入ります。",   // 一言紹介
+  avatar: "assets/avatar.svg",        // アイコン画像（正方形推奨。URLでも可）
+
+  links: [
+    { icon: "x",         label: "X (Twitter)", url: "https://x.com/yourname" },
+    { icon: "instagram", label: "Instagram",   url: "https://instagram.com/yourname" },
+    { icon: "email",     label: "メール",        url: "mailto:your@email.com" },
+  ],
+
+  footer: "Your Name",                // フッターの名前（© 年 は自動）
+};
+```
+
+### リンクの追加・削除
+
+- **削除**：不要な `{ icon: ..., label: ..., url: ... },` の行を**丸ごと消す**だけ
+- **追加**：行を**複製**して `label` と `url` を変えるだけ（順番は上から表示順）
+- **メール**：`url` を `"mailto:アドレス"` にすると別タブで開かずメーラーが起動します
+
+### 使えるアイコン（`icon:` の値）
+
+`x` / `instagram` / `youtube` / `tiktok` / `email` / `website` / `line` / `facebook` / `github` / `note` / `threads`
+
+> 一覧にない名前を指定した場合は、自動で汎用（地球儀）アイコンが表示されます。
+
+### アイコン画像（プロフィール）
+
+`assets/avatar.svg` を自分の画像に差し替えます。別名・別形式（.png / .jpg）にした場合は `CONFIG.avatar` のパスも合わせて変更してください。外部URL（例：画像ホスティングのURL）も指定できます。
 
 ## ローカルで確認
 
@@ -35,7 +57,16 @@ python3 -m http.server 8000
 
 ## デプロイ（GitHub Pages）
 
-1. このリポジトリを GitHub に push
-2. GitHub のリポジトリ → **Settings** → **Pages**
-3. **Source** を `Deploy from a branch`、Branch を `main` / `/ (root)` に設定して Save
-4. 数十秒後、上記の公開URLで表示されます
+初回はリポジトリ作成と Pages 有効化が必要です（このリポジトリは設定済み）。
+以後は編集して push するだけで、数十秒後に公開URLへ自動反映されます。
+
+```bash
+git add -A
+git commit -m "update"
+git push
+```
+
+新しく自分のリポジトリで公開する場合：
+1. GitHub に push
+2. リポジトリ → **Settings** → **Pages**
+3. **Source** を `Deploy from a branch`、Branch を `main` / `/ (root)` にして Save
