@@ -135,7 +135,10 @@
       <h1>🔗 Link in bio ジェネレーター</h1>
       <p>ログイン不要・無料。入力して「ダウンロード」すれば、あなた専用のページHTMLが手に入ります。</p>
     </div>
-    <button class="btn" id="download">📥 ページをダウンロード</button>
+    <div class="row" style="flex:0 0 auto;gap:8px">
+      <button class="btn secondary grow0" id="reset">リセット</button>
+      <button class="btn" id="download">📥 ページをダウンロード</button>
+    </div>
   </header>
 
   <div class="layout">
@@ -330,6 +333,29 @@
       ],
     };
 
+    // 入力内容をブラウザに自動保存・復元（リロードしても消えない）
+    const STORE_KEY = "linkbio_generator_state";
+    (function restore() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORE_KEY) || "null");
+        if (saved && typeof saved === "object") Object.assign(state, saved);
+      } catch (e) {}
+    })();
+    function save() {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+      } catch (e) {
+        // 画像が大きく容量超過した場合は、画像を除いて保存（文字やリンクは残す）
+        try {
+          const lite = Object.assign({}, state);
+          if (String(lite.avatar).startsWith("data:")) lite.avatar = DEFAULT_AVATAR;
+          if (String(lite.bgImage).startsWith("data:")) lite.bgImage = "";
+          lite.gallery = (lite.gallery || []).filter(function (s) { return !String(s).startsWith("data:"); });
+          localStorage.setItem(STORE_KEY, JSON.stringify(lite));
+        } catch (e2) {}
+      }
+    }
+
     function backgroundValue() {
       if (state.bgType === "gradient") {
         return "linear-gradient(" + state.gradDir + ", " + state.grad1 + ", " + state.grad2 + ")";
@@ -385,6 +411,7 @@
     }
 
     function refreshPreview() {
+      save();
       document.getElementById("preview").srcdoc = generateHtml();
     }
 
@@ -596,7 +623,53 @@
     document.getElementById("f-footer").value = state.footer;
     document.getElementById("f-avatar").value = "";
 
+    // 保存済みの状態をフォーム全体へ反映（セグメント選択・スライダー・色など）
+    function setSeg(containerId, val) {
+      const c = document.getElementById(containerId);
+      c.querySelectorAll("button").forEach(function (b) {
+        b.classList.toggle("active", b.dataset.v === String(val));
+      });
+    }
+    function syncControls() {
+      document.getElementById("f-name").value = state.name;
+      document.getElementById("f-bio").value = state.bio;
+      document.getElementById("bio-count").textContent = (state.bio || "").length;
+      document.getElementById("f-footer").value = state.footer;
+      document.getElementById("f-music").value = state.music || "";
+      document.getElementById("f-bg-color").value = state.bgColor;
+      document.getElementById("f-bg-color-text").value = state.bgColor;
+      document.getElementById("f-textcolor").value = state.textColor;
+      document.getElementById("f-textcolor-text").value = state.textColor;
+      document.getElementById("f-accent").value = state.accent;
+      document.getElementById("f-accent-text").value = state.accent;
+      document.getElementById("f-grad-1").value = state.grad1;
+      document.getElementById("f-grad-2").value = state.grad2;
+      document.getElementById("f-grad-dir").value = state.gradDir;
+      document.getElementById("f-radius").value = state.buttonRadius;
+      document.getElementById("radius-val").textContent = state.buttonRadius;
+      const isUploadedAvatar = String(state.avatar).startsWith("data:") && state.avatar !== DEFAULT_AVATAR;
+      document.getElementById("f-avatar").value = isUploadedAvatar ? "（アップロード済み画像）" : (state.avatar === DEFAULT_AVATAR ? "" : state.avatar);
+      document.getElementById("f-bg-image").value = String(state.bgImage).startsWith("data:") ? "（アップロード済み画像）" : (state.bgImage || "");
+      setSeg("bg-type", state.bgType);
+      document.getElementById("bg-color-box").hidden = state.bgType !== "color";
+      document.getElementById("bg-gradient-box").hidden = state.bgType !== "gradient";
+      document.getElementById("bg-image-box").hidden = state.bgType !== "image";
+      setSeg("overlay-type", state.overlay);
+      setSeg("font-type", state.font);
+      setSeg("btn-type", state.buttonStyle);
+      setSeg("avatar-type", state.avatarShape);
+    }
+
+    // リセット（保存内容を消して最初から）
+    document.getElementById("reset").addEventListener("click", function () {
+      if (confirm("入力内容をすべて消して最初からやり直しますか？")) {
+        try { localStorage.removeItem(STORE_KEY); } catch (e) {}
+        location.reload();
+      }
+    });
+
     // テンプレート読み込み → プレビュー
+    syncControls();
     renderLinks();
     renderThumbs();
     fetch("index.html?_=" + (window.performance ? performance.now() : ""), { cache: "no-store" })
