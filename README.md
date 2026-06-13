@@ -58,6 +58,8 @@ const CONFIG = {
     { icon: "email",     label: "メール",        url: "mailto:your@email.com" },
   ],
 
+  music: "",                          // 好きな曲のURL（Spotify等）。空欄なら非表示
+
   footer: "Your Name",                // フッターの名前（© 年 は自動）
 };
 ```
@@ -114,6 +116,17 @@ const CONFIG = {
 - 上品：`buttonStyle:"outline"`, `font:"serif"`
 
 > `buttonStyle:"glass"` や白文字は、暗い背景・写真背景と組み合わせると映えます（`textColor` も合わせて調整）。
+
+### 好きな曲を埋め込む（`music`）
+
+`music` に曲のURLを貼ると、プレイヤーが表示されます（空欄なら非表示）。対応サービス：
+
+- **Spotify**（曲・アルバム・プレイリスト）例：`"https://open.spotify.com/track/..."`
+- **YouTube** 例：`"https://youtu.be/..."`
+- **Apple Music** 例：`"https://music.apple.com/jp/album/..."`
+- **SoundCloud** 例：`"https://soundcloud.com/.../..."`
+
+曲ページの「共有」からURLをコピーして貼り付けるだけ。サービスは自動判定されます。
 
 ### アイコン画像（プロフィール）
 

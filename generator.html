@@ -252,6 +252,15 @@
       </div>
 
       <div class="card">
+        <h2>好きな曲（任意）</h2>
+        <label>曲のURL</label>
+        <input type="text" id="f-music" placeholder="Spotify / YouTube / Apple Music / SoundCloud の曲URL" />
+        <div class="hint">
+          曲ページの「共有」からURLをコピーして貼り付け。プレイヤーが表示されます。空欄なら非表示。
+        </div>
+      </div>
+
+      <div class="card">
         <h2>フッター</h2>
         <label>フッターに表示する名前</label>
         <input type="text" id="f-footer" placeholder="Your Name" />
@@ -300,6 +309,7 @@
       buttonStyle: "card",
       buttonRadius: 14,
       avatarShape: "circle",
+      music: "",
       footer: "Your Name",
       links: [
         { icon: "x", label: "X (Twitter)", url: "https://x.com/yourname" },
@@ -332,6 +342,7 @@
           avatarShape: state.avatarShape,
         },
         links: state.links,
+        music: state.music,
         footer: state.footer,
       };
     }
@@ -413,6 +424,7 @@
       document.getElementById("bio-count").textContent = state.bio.length;
     });
     bindText("f-footer", "footer");
+    bindText("f-music", "music");
     bindText("f-avatar", "avatar");
     bindText("f-bg-image", "bgImage");
 

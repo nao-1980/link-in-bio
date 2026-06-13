@@ -163,6 +163,15 @@
     }
     [data-btn="glass"] .link .chev,
     [data-btn="glass"] .link svg { color: var(--page-text); }
+    .music {
+      width: 100%;
+      margin-top: 24px;
+      border-radius: 14px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .music:empty { display: none; }
+    .music iframe { display: block; width: 100%; border: 0; }
     footer { margin-top: 40px; color: var(--page-text); opacity: 0.6; font-size: 0.8rem; }
   </style>
 </head>
@@ -173,6 +182,7 @@
     <h1 class="name" id="name"></h1>
     <p class="bio" id="bio"></p>
     <nav class="links" id="links"></nav>
+    <div class="music" id="music"></div>
     <footer id="footer"></footer>
   </main>
 
@@ -207,6 +217,10 @@
         buttonRadius: 14,       // ボタンの角丸(px)。0=四角 / 14=標準 / 999=カプセル型
         avatarShape: "circle",  // アイコンの形： "circle"(丸) / "rounded"(角丸) / "square"(四角)
       },
+
+      // 好きな曲（任意）：Spotify / YouTube / Apple Music / SoundCloud の曲URLを貼ると
+      // プレイヤーが表示されます。不要なら "" のままにする。
+      music: "",
 
       // リンク一覧：不要な行は丸ごと削除、必要な行は複製して増やせます。
       //   icon … 下のアイコン一覧から選択（未対応の名前なら自動で汎用アイコン）
@@ -254,6 +268,27 @@
     }
 
     const chev = '<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>';
+
+    // 好きな曲：各サービスのURLを埋め込みプレイヤーに変換
+    function musicEmbed(url) {
+      if (!url) return "";
+      url = String(url).trim();
+      var src = "", height = 152;
+      if (/open\.spotify\.com/.test(url)) {
+        var m = url.match(/open\.spotify\.com\/(?:intl-[a-z]+\/)?(track|album|playlist|episode|show|artist)\/([A-Za-z0-9]+)/);
+        if (m) { src = "https://open.spotify.com/embed/" + m[1] + "/" + m[2]; height = m[1] === "track" ? 152 : 352; }
+      } else if (/youtube\.com|youtu\.be/.test(url)) {
+        var y = url.match(/[?&]v=([A-Za-z0-9_-]{11})/) || url.match(/youtu\.be\/([A-Za-z0-9_-]{11})/) || url.match(/embed\/([A-Za-z0-9_-]{11})/);
+        if (y) { src = "https://www.youtube.com/embed/" + y[1]; height = 200; }
+      } else if (/music\.apple\.com/.test(url)) {
+        src = url.replace("music.apple.com", "embed.music.apple.com"); height = 175;
+      } else if (/soundcloud\.com/.test(url)) {
+        src = "https://w.soundcloud.com/player/?url=" + encodeURIComponent(url) + "&color=%236d5efc&visual=false"; height = 166;
+      }
+      if (!src) return "";
+      return '<iframe src="' + src + '" width="100%" height="' + height +
+        '" frameborder="0" loading="lazy" allow="autoplay; encrypted-media; clipboard-write; fullscreen; picture-in-picture" allowfullscreen></iframe>';
+    }
 
     // 背景を適用（色 / グラデーション / 画像 を自動判定）
     function applyBackground(bg) {
@@ -312,6 +347,7 @@
         );
       })
       .join("");
+    document.getElementById("music").innerHTML = musicEmbed(CONFIG.music);
     document.getElementById("footer").innerHTML =
       "© " + new Date().getFullYear() + " " + CONFIG.footer;
   </script>
