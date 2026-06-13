@@ -20,12 +20,27 @@
       --border: #e5e7eb;
       --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
       --shadow-hover: 0 6px 16px rgba(0, 0, 0, 0.08);
+      --accent: #6d5efc;        /* アクセントカラー（テーマで変更） */
+      --radius: 14px;           /* ボタンの角丸（テーマで変更） */
+      --avatar-radius: 50%;     /* アイコンの形（テーマで変更） */
+      --font: system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
+        "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+    }
+    /* フォントの選択肢（theme.font で指定） */
+    [data-font="rounded"] {
+      --font: "Hiragino Maru Gothic ProN", "Quicksand", "Rounded Mplus 1c",
+        system-ui, sans-serif;
+    }
+    [data-font="serif"] {
+      --font: "Hiragino Mincho ProN", "Yu Mincho", "YuMincho", Georgia, serif;
+    }
+    [data-font="mono"] {
+      --font: "SF Mono", "Menlo", "Consolas", "Courier New", monospace;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     html { -webkit-text-size-adjust: 100%; }
     body {
-      font-family: system-ui, -apple-system, "Hiragino Kaku Gothic ProN",
-        "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif;
+      font-family: var(--font);
       background: var(--bg);
       background-size: cover;
       background-position: center;
@@ -58,7 +73,7 @@
     .avatar {
       width: 120px;
       height: 120px;
-      border-radius: 50%;
+      border-radius: var(--avatar-radius);
       object-fit: cover;
       border: 3px solid var(--card);
       box-shadow: var(--shadow-hover);
@@ -95,23 +110,58 @@
       padding: 16px 20px;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: var(--radius);
       color: var(--text);
       text-decoration: none;
       font-size: 0.98rem;
       font-weight: 600;
       box-shadow: var(--shadow);
-      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease,
+        background 0.15s ease;
     }
     .link:hover {
       transform: translateY(-2px);
       box-shadow: var(--shadow-hover);
-      border-color: #d1d5db;
+      border-color: var(--accent);
     }
     .link:active { transform: translateY(0); }
     .link svg { width: 22px; height: 22px; flex-shrink: 0; }
     .link span { flex: 1; }
     .link .chev { color: var(--muted); width: 16px; height: 16px; }
+
+    /* ボタンスタイル（theme.buttonStyle で指定） */
+    /* outline … 背景透明＋アクセント枠線 */
+    [data-btn="outline"] .link {
+      background: transparent;
+      border: 2px solid var(--accent);
+      color: var(--page-text);
+      box-shadow: none;
+    }
+    [data-btn="outline"] .link .chev,
+    [data-btn="outline"] .link svg { color: var(--page-text); }
+    [data-btn="outline"] .link:hover { background: rgba(255, 255, 255, 0.12); }
+
+    /* solid … アクセント色で塗りつぶし＋白文字 */
+    [data-btn="solid"] .link {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #ffffff;
+    }
+    [data-btn="solid"] .link .chev,
+    [data-btn="solid"] .link svg { color: #ffffff; }
+    [data-btn="solid"] .link:hover { filter: brightness(1.06); }
+
+    /* glass … 半透明＋すりガラス（写真背景と相性良） */
+    [data-btn="glass"] .link {
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      color: var(--page-text);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      box-shadow: none;
+    }
+    [data-btn="glass"] .link .chev,
+    [data-btn="glass"] .link svg { color: var(--page-text); }
     footer { margin-top: 40px; color: var(--page-text); opacity: 0.6; font-size: 0.8rem; }
   </style>
 </head>
@@ -147,6 +197,15 @@
       // 画像背景のとき文字を読みやすくする重ね色（任意）。不要なら "" にする
       //   例（暗くする）: "rgba(0,0,0,0.35)"  /  例（明るくする）: "rgba(255,255,255,0.45)"
       overlay: "",
+
+      // ▼ デザイン（自由に変えられる見た目の設定）
+      theme: {
+        accent: "#6d5efc",      // アクセントカラー（ホバー枠・solid塗り・glass縁取り）
+        font: "sans",           // フォント： "sans" / "rounded" / "serif" / "mono"
+        buttonStyle: "card",    // ボタン： "card"(白カード) / "outline"(枠線) / "solid"(塗り) / "glass"(すりガラス)
+        buttonRadius: 14,       // ボタンの角丸(px)。0=四角 / 14=標準 / 999=カプセル型
+        avatarShape: "circle",  // アイコンの形： "circle"(丸) / "rounded"(角丸) / "square"(四角)
+      },
 
       // リンク一覧：不要な行は丸ごと削除、必要な行は複製して増やせます。
       //   icon … 下のアイコン一覧から選択（未対応の名前なら自動で汎用アイコン）
@@ -211,8 +270,21 @@
       }
     }
 
+    // テーマ（デザイン）を適用
+    function applyTheme(t) {
+      t = t || {};
+      const root = document.documentElement;
+      if (t.accent) root.style.setProperty("--accent", t.accent);
+      if (t.buttonRadius != null) root.style.setProperty("--radius", t.buttonRadius + "px");
+      const shapes = { circle: "50%", rounded: "18px", square: "6px" };
+      root.style.setProperty("--avatar-radius", shapes[t.avatarShape] || "50%");
+      document.body.dataset.font = t.font || "sans";
+      document.body.dataset.btn = t.buttonStyle || "card";
+    }
+
     // 描画
     applyBackground(CONFIG.background);
+    applyTheme(CONFIG.theme);
     if (CONFIG.textColor) {
       document.documentElement.style.setProperty("--page-text", CONFIG.textColor);
     }

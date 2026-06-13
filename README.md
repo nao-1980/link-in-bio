@@ -25,6 +25,14 @@ const CONFIG = {
   textColor: "#1a1a1a",              // 名前・一言・フッターの文字色
   overlay: "",                        // 画像背景の重ね色（任意）
 
+  theme: {                            // デザイン（見た目）の設定
+    accent: "#6d5efc",               // アクセントカラー
+    font: "sans",                     // フォント
+    buttonStyle: "card",             // ボタンの種類
+    buttonRadius: 14,                 // ボタンの角丸
+    avatarShape: "circle",           // アイコンの形
+  },
+
   links: [
     { icon: "x",         label: "X (Twitter)", url: "https://x.com/yourname" },
     { icon: "instagram", label: "Instagram",   url: "https://instagram.com/yourname" },
@@ -67,6 +75,26 @@ const CONFIG = {
   - 不要なら `overlay: ""`（空）
 
 > リンクボタンは常に白カードなので、背景を変えてもボタン内の文字は読みやすいままです。
+
+### デザインの変更（`theme`）
+
+コードを書かずに、`theme` の値を変えるだけで見た目を自由に調整できます。
+
+| 設定 | 選べる値 | 内容 |
+| --- | --- | --- |
+| `accent` | 任意の色（例 `"#ff5a8a"`） | アクセント色（ホバー枠・solid塗り・glass縁取り） |
+| `font` | `"sans"` / `"rounded"` / `"serif"` / `"mono"` | フォントの雰囲気（標準・丸ゴシック・明朝・等幅） |
+| `buttonStyle` | `"card"` / `"outline"` / `"solid"` / `"glass"` | 白カード / 枠線のみ / アクセント塗り / すりガラス |
+| `buttonRadius` | 数値(px) | `0`=四角 / `14`=標準 / `999`=カプセル型 |
+| `avatarShape` | `"circle"` / `"rounded"` / `"square"` | アイコンの形（丸 / 角丸 / 四角） |
+
+**組み合わせ例：**
+- シンプル：`buttonStyle:"card"`, `font:"sans"`, `avatarShape:"circle"`
+- ポップ：`buttonStyle:"solid"`, `accent:"#ff5a8a"`, `buttonRadius:999`, `font:"rounded"`
+- 写真背景に映える：`buttonStyle:"glass"`, `textColor:"#ffffff"`（背景画像と併用）
+- 上品：`buttonStyle:"outline"`, `font:"serif"`
+
+> `buttonStyle:"glass"` や白文字は、暗い背景・写真背景と組み合わせると映えます（`textColor` も合わせて調整）。
 
 ### アイコン画像（プロフィール）
 
