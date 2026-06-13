@@ -163,6 +163,22 @@
     }
     [data-btn="glass"] .link .chev,
     [data-btn="glass"] .link svg { color: var(--page-text); }
+    .gallery {
+      width: 100%;
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+    .gallery:empty { display: none; }
+    .gallery img {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      object-fit: cover;
+      border-radius: 14px;
+      display: block;
+      box-shadow: var(--shadow);
+    }
     .music {
       width: 100%;
       margin-top: 24px;
@@ -182,6 +198,7 @@
     <h1 class="name" id="name"></h1>
     <p class="bio" id="bio"></p>
     <nav class="links" id="links"></nav>
+    <div class="gallery" id="gallery"></div>
     <div class="music" id="music"></div>
     <footer id="footer"></footer>
   </main>
@@ -221,6 +238,10 @@
       // 好きな曲（任意）：Spotify / YouTube / Apple Music / SoundCloud の曲URLを貼ると
       // プレイヤーが表示されます。不要なら "" のままにする。
       music: "",
+
+      // 写真ギャラリー（任意）：画像URL or データURLを並べると2列で表示されます。
+      //   例: gallery: ["assets/photo1.jpg", "https://.../photo2.jpg"]
+      gallery: [],
 
       // リンク一覧：不要な行は丸ごと削除、必要な行は複製して増やせます。
       //   icon … 下のアイコン一覧から選択（未対応の名前なら自動で汎用アイコン）
@@ -346,6 +367,9 @@
           "</a>"
         );
       })
+      .join("");
+    document.getElementById("gallery").innerHTML = (CONFIG.gallery || [])
+      .map(function (src) { return '<img src="' + src + '" alt="" loading="lazy" />'; })
       .join("");
     document.getElementById("music").innerHTML = musicEmbed(CONFIG.music);
     document.getElementById("footer").innerHTML =

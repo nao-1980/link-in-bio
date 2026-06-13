@@ -59,6 +59,7 @@ const CONFIG = {
   ],
 
   music: "",                          // 好きな曲のURL（Spotify等）。空欄なら非表示
+  gallery: [],                        // 写真ギャラリー（画像URLの配列）。2列で表示
 
   footer: "Your Name",                // フッターの名前（© 年 は自動）
 };
@@ -127,6 +128,19 @@ const CONFIG = {
 - **SoundCloud** 例：`"https://soundcloud.com/.../..."`
 
 曲ページの「共有」からURLをコピーして貼り付けるだけ。サービスは自動判定されます。
+
+### 写真ギャラリー（`gallery`）
+
+`gallery` に画像URLを並べると、2列のグリッドで写真が表示されます（空配列なら非表示）。
+
+```js
+gallery: [
+  "assets/photo1.jpg",
+  "https://example.com/photo2.jpg",
+],
+```
+
+ジェネレーターでは「写真をアップロード」で複数画像を選ぶか、画像URLを貼って追加できます（アップした写真はHTMLに埋め込まれます。枚数が多いとファイルが大きくなる点に注意）。
 
 ### アイコン画像（プロフィール）
 
