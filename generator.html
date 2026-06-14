@@ -250,12 +250,7 @@
       </div>
 
       <div class="card">
-        <h2>リンク
-          <span style="float:right;display:inline-flex;gap:6px">
-            <button class="btn secondary grow0" id="clear-urls" type="button">仮URLを一括クリア</button>
-            <button class="btn secondary grow0" id="add-link" type="button">＋ 追加</button>
-          </span>
-        </h2>
+        <h2>リンク <button class="btn secondary grow0" id="add-link" type="button" style="float:right">＋ 追加</button></h2>
         <div id="links-list"></div>
       </div>
 
@@ -332,9 +327,9 @@
       gallery: [],
       footer: "Ur Name",
       links: [
-        { icon: "x", label: "X (Twitter)", url: "https://x.com/yourname" },
-        { icon: "instagram", label: "Instagram", url: "https://instagram.com/yourname" },
-        { icon: "email", label: "メール", url: "mailto:your@email.com" },
+        { icon: "x", label: "X (Twitter)", url: "" },
+        { icon: "instagram", label: "Instagram", url: "" },
+        { icon: "email", label: "メール", url: "" },
       ],
     };
 
@@ -623,11 +618,7 @@
       renderLinks(); refreshPreview();
     }
     document.getElementById("add-link").addEventListener("click", function () {
-      state.links.push({ icon: "website", label: "新しいリンク", url: "https://" });
-      renderLinks(); refreshPreview();
-    });
-    document.getElementById("clear-urls").addEventListener("click", function () {
-      state.links.forEach(function (l) { l.url = ""; });
+      state.links.push({ icon: "website", label: "新しいリンク", url: "" });
       renderLinks(); refreshPreview();
     });
 
