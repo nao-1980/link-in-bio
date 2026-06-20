@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Link in bio</title>
+  <style>body{margin:0;font-family:system-ui,sans-serif}.lb-msg{text-align:center;color:#6b7280;margin-top:80px;padding:0 20px}</style>
+</head>
+<body>
+  <div class="lb-msg">読み込み中…</div>
+  <script>
+    // URLのハッシュに埋め込まれた設定を読み取り、テンプレートに流し込んで表示する。
+    (function () {
+      var enc = (location.hash || "").replace(/^#/, "");
+      function fail(msg) { document.body.innerHTML = '<div class="lb-msg">' + msg + '</div>'; }
+      if (!enc) { fail("ページのデータがありません。"); return; }
+      var config;
+      try {
+        config = JSON.parse(decodeURIComponent(escape(atob(enc))));
+      } catch (e) { fail("リンクが正しくありません。"); return; }
+      if (config && config.name) document.title = config.name;
+      var CONFIG_REGEX = /<script>\s*const CONFIG\s*=[\s\S]*?<\/script>/;
+      fetch("template.html?_=" + (window.performance ? performance.now() : ""), { cache: "no-store" })
+        .then(function (r) { return r.text(); })
+        .then(function (tpl) {
+          var block = "<script>\n    const CONFIG = " + JSON.stringify(config) + ";\n  <\/script>";
+          var html = CONFIG_REGEX.test(tpl) ? tpl.replace(CONFIG_REGEX, block) : tpl;
+          document.open();
+          document.write(html);
+          document.close();
+        })
+        .catch(function () { fail("読み込みに失敗しました。少し待って再読み込みしてください。"); });
+    })();
+  </script>
+</body>
+</html>

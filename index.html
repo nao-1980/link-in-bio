@@ -137,9 +137,22 @@
     </div>
     <div class="row" style="flex:0 0 auto;gap:8px">
       <button class="btn secondary grow0" id="reset">リセット</button>
-      <button class="btn" id="download">📥 ページをダウンロード</button>
+      <button class="btn secondary grow0" id="download">📥 ダウンロード</button>
+      <button class="btn" id="publish">🔗 リンクを発行</button>
     </div>
   </header>
+
+  <div id="publish-result" style="display:none;max-width:1200px;margin:14px auto 0;padding:0 24px">
+    <div style="background:#f0eeff;border:1px solid #d9d4ff;border-radius:12px;padding:14px 16px">
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:8px">🔗 共有リンクを発行しました（ダウンロード不要・このURLを送るだけ）</div>
+      <div class="row">
+        <input type="text" id="publish-url" readonly style="flex:1" />
+        <button class="btn grow0" id="publish-copy">コピー</button>
+        <a class="btn secondary grow0" id="publish-open" target="_blank">開く</a>
+      </div>
+      <div class="hint" id="publish-note"></div>
+    </div>
+  </div>
 
   <div class="layout">
     <!-- 入力フォーム -->
@@ -428,6 +441,34 @@
       showToast("index.html をダウンロードしました");
     }
 
+    // 入力内容をURLに埋め込んだ「共有リンク」を発行する（ダウンロード不要）
+    function publishLink() {
+      const cfg = buildConfig();
+      // データURLの画像はURLに含められない（長くなりすぎる）→ 除外して警告
+      let stripped = false;
+      if (String(cfg.avatar || "").startsWith("data:")) { cfg.avatar = "assets/avatar.svg"; stripped = true; }
+      if (typeof cfg.background === "string" && /data:image/i.test(cfg.background)) { cfg.background = "#f7f8fa"; stripped = true; }
+      if (Array.isArray(cfg.gallery) && cfg.gallery.length) {
+        const before = cfg.gallery.length;
+        cfg.gallery = cfg.gallery.filter(function (s) { return !String(s).startsWith("data:"); });
+        if (cfg.gallery.length < before) stripped = true;
+      }
+      const enc = btoa(unescape(encodeURIComponent(JSON.stringify(cfg))));
+      const nameSlug = encodeURIComponent(String(cfg.footer || cfg.name || "page").trim());
+      const dir = location.pathname.replace(/[^/]*$/, "");
+      const url = location.origin + dir + "p.html?u=" + nameSlug + "#" + enc;
+
+      document.getElementById("publish-url").value = url;
+      document.getElementById("publish-open").href = url;
+      document.getElementById("publish-note").textContent = stripped
+        ? "⚠️ アップロードした画像は共有リンクに含められません（URLが長くなりすぎるため）。画像は「画像URL」で指定すると共有リンクに載ります。"
+        : (url.length > 1500 ? "リンクがやや長めです。LINE/メールでは問題なく送れます。" : "このURLを送るだけで、相手はそのままページを見られます。");
+      document.getElementById("publish-result").style.display = "block";
+      // クリップボードへコピー
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(function () { showToast("共有リンクをコピーしました"); });
+      document.getElementById("publish-result").scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+
     function showToast(msg) {
       const t = document.getElementById("toast");
       t.textContent = msg;
@@ -623,6 +664,12 @@
     });
 
     document.getElementById("download").addEventListener("click", download);
+    document.getElementById("publish").addEventListener("click", publishLink);
+    document.getElementById("publish-copy").addEventListener("click", function () {
+      const inp = document.getElementById("publish-url");
+      inp.select();
+      if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(function () { showToast("共有リンクをコピーしました"); });
+    });
     document.getElementById("download2").addEventListener("click", download);
 
     // 初期値をフォームに反映
