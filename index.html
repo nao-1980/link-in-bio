@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Link in bio ジェネレーター</title>
-  <meta name="description" content="ログイン不要で自分のリンクページを作成・ダウンロード" />
+  <meta name="description" content="ログイン不要で自分のリンクページを作成し、共有URLを発行" />
   <style>
     :root {
       --accent: #6d5efc;
@@ -133,11 +133,10 @@
   <header>
     <div>
       <h1>🔗 Link in bio ジェネレーター</h1>
-      <p>ログイン不要・無料。入力して「ダウンロード」すれば、あなた専用のページHTMLが手に入ります。</p>
+      <p>ログイン不要・無料。入力して「リンクを発行」すれば、共有用のURLがすぐ手に入ります。</p>
     </div>
     <div class="row" style="flex:0 0 auto;gap:8px">
       <button class="btn secondary grow0" id="reset">リセット</button>
-      <button class="btn secondary grow0" id="download">📥 ダウンロード</button>
       <button class="btn" id="publish">🔗 リンクを発行</button>
     </div>
   </header>
@@ -300,11 +299,8 @@
       <div class="card" style="margin-bottom:12px">
         <h2 style="margin-bottom:10px">プレビュー</h2>
         <div class="preview-frame"><iframe id="preview" title="preview"></iframe></div>
-        <button class="btn" id="download2" style="width:100%; margin-top:12px">📥 ページをダウンロード</button>
-        <div class="dl-note">
-          ダウンロードした <code>index.html</code> を GitHub Pages・Netlify などにアップすれば公開できます。
-          このツールはデータを保存しません。
-        </div>
+        <button class="btn" id="publish2" style="width:100%; margin-top:12px">🔗 リンクを発行</button>
+        <div class="dl-note">入力した内容を埋め込んだ共有URLを発行します。このツールはデータを保存しません。</div>
       </div>
     </div>
   </div>
@@ -426,19 +422,6 @@
     function refreshPreview() {
       save();
       document.getElementById("preview").srcdoc = generateHtml();
-    }
-
-    function download() {
-      const html = generateHtml();
-      const blob = new Blob([html], { type: "text/html;charset=utf-8" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = "index.html";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-      URL.revokeObjectURL(a.href);
-      showToast("index.html をダウンロードしました");
     }
 
     // 入力内容をURLに埋め込んだ「共有リンク」を発行する（ダウンロード不要）
@@ -663,14 +646,13 @@
       renderLinks(); refreshPreview();
     });
 
-    document.getElementById("download").addEventListener("click", download);
     document.getElementById("publish").addEventListener("click", publishLink);
+    document.getElementById("publish2").addEventListener("click", publishLink);
     document.getElementById("publish-copy").addEventListener("click", function () {
       const inp = document.getElementById("publish-url");
       inp.select();
       if (navigator.clipboard) navigator.clipboard.writeText(inp.value).then(function () { showToast("共有リンクをコピーしました"); });
     });
-    document.getElementById("download2").addEventListener("click", download);
 
     // 初期値をフォームに反映
     document.getElementById("f-name").value = state.name;
